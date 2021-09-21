@@ -40,6 +40,33 @@ class Digitizer:
         enhancer = ImageEnhance.Contrast(self.img)
         self.img = enhancer.enhance(amount)
 
+    def convert_to_ascii(self):
+        font_size = 10
+        letters = [" ", ".", "!", "i", "r", "e", "p", "S", "H"]
+        (w, h) = self.img.size
+        new_width = int(w / font_size)
+        new_height = int(h / font_size)
+        sample_size = (new_width, new_height)
+        final_size = (new_width * font_size, new_height * font_size)
+        self.make_grayscale()
+        self.adjust_contrast(5.0)
+        self.img = self.img.resize(sample_size)
+
+        ascii_img = Image.new("RGBA", final_size, color="#2727e6")
+        font = ImageFont.truetype("fonts/ibm-plex-mono.ttf", font_size)
+        drawer = ImageDraw.Draw(ascii_img)
+
+        for x in range(new_width):
+            for y in range(new_height):
+                (r, g, b, a) = self.img.getpixel((x, y))
+                brightness = r / 255
+                letter_num = int(len(letters) * brightness)
+                letter = letters[letter_num]
+                position = (x * font_size, y * font_size)
+                drawer.text(position, letter, font=font, fill=(255, 255, 255, 255))
+
+        self.img = ascii_img
+
     def save(self, output_filepath):
         if self.filepath.endswith(".jpg"):
             self.img = self.img.convert("RGB")
@@ -47,16 +74,14 @@ class Digitizer:
         self.img.save(output_filepath)
 
 
-inputs = glob.glob("inputs/*.jpg")
+if __name__ == "__main__":
+    inputs = glob.glob("inputs/*.jpg")
+    os.makedirs("outputs", exist_ok=True)
 
-os.makedirs("outputs", exist_ok=True)
+    for filepath in inputs:
+        output = filepath.replace("inputs", "outputs")
+        image = Digitizer(filepath)
 
-for filepath in inputs:
-    output = filepath.replace("inputs", "outputs")
-    image = Digitizer(filepath)
-    image.adjust_contrast()
-    image.make_grayscale()
-    image.make_square()
-    image.add_watermark()
-    image.save(output)
+        image.convert_to_ascii()
 
+        image.save(output)
