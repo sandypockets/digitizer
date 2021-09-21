@@ -10,14 +10,22 @@ class Digitizer:
         self.img = Image.open(filepath)
 
     def make_upside_down(self):
-        print("Make upside down")
         self.img = self.img.rotate(180)
 
     def make_thumbnail_size(self, size=(128, 128)):
         self.img.thumbnail(size)
 
     def make_square(self, size=200):
-        self.img = self.img.resize((size, size))
+        (w, h) = self.img.size
+        if w > h:
+            x = (w - h) * 0.5
+            y = 0
+            box = (x, y, h + x, h + y)
+        else:
+            x = 0
+            y = (h - w) * 0.5
+            box = (x, y, w + x, w + y)
+        self.img = self.img.resize((size, size), box=box)
 
     def make_grayscale(self):
         self.img = ImageOps.grayscale(self.img)
@@ -38,6 +46,7 @@ for filepath in inputs:
     output = filepath.replace("inputs", "outputs")
     image = Digitizer(filepath)
     image.make_thumbnail_size((200, 200))
+    image.make_square()
     image.make_grayscale()
     image.make_upside_down()
     image.save(output)
