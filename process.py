@@ -41,15 +41,15 @@ class Digitizer:
         self.img = enhancer.enhance(amount)
 
     def convert_to_ascii(self):
-        font_size = 10
-        letters = [" ", ".", "!", "i", "r", "e", "p", "S", "H"]
+        font_size = 7
+        letters = [" ", ".", "-", "!", "i", "r", "u", "z", "e", "t", "p", "O", "S", "H", "E", "M"]
         (w, h) = self.img.size
         new_width = int(w / font_size)
         new_height = int(h / font_size)
         sample_size = (new_width, new_height)
         final_size = (new_width * font_size, new_height * font_size)
         self.make_grayscale()
-        self.adjust_contrast(5.0)
+        self.adjust_contrast(6)
         self.img = self.img.resize(sample_size)
 
         ascii_img = Image.new("RGBA", final_size, color="#2727e6")
@@ -59,13 +59,14 @@ class Digitizer:
         for x in range(new_width):
             for y in range(new_height):
                 (r, g, b, a) = self.img.getpixel((x, y))
-                brightness = r / 255
+                brightness = r / 256
                 letter_num = int(len(letters) * brightness)
                 letter = letters[letter_num]
                 position = (x * font_size, y * font_size)
                 drawer.text(position, letter, font=font, fill=(255, 255, 255, 255))
 
         self.img = ascii_img
+        print("Image processing complete.")
 
     def save(self, output_filepath):
         if self.filepath.endswith(".jpg"):
